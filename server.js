@@ -3,6 +3,8 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const path = require("path");
+
 const { buildTimetable } = require("./timetable");
 
 const app = express();
@@ -10,24 +12,33 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect("mongodb://127.0.0.1:27017/timetableDB")
-.then(()=>console.log("MongoDB Connected"));
+/* ---------- MongoDB Connection ---------- */
+
+mongoose.connect(process.env.MONGO_URI)
+.then(()=>console.log("MongoDB Connected"))
+.catch(err=>console.log(err));
+
+/* ---------- User Model ---------- */
 
 const UserSchema = new mongoose.Schema({
-username:String,
-email:String,
-password:String,
-role:{
-type:String,
-default:"user"
-}
+  username:String,
+  email:String,
+  password:String,
+  role:{
+    type:String,
+    default:"user"
+  }
 });
 
 const User = mongoose.model("User",UserSchema);
 
+/* ---------- Signup ---------- */
+
 app.post("/signup",async(req,res)=>{
 
 const {username,email,password}=req.body;
+
+try{
 
 const hashedPassword = await bcrypt.hash(password,10);
 
@@ -40,7 +51,14 @@ password:hashedPassword
 await user.save();
 
 res.json({message:"User Registered"});
+
+}catch(err){
+res.status(500).json({message:"Signup failed"});
+}
+
 });
+
+/* ---------- Login ---------- */
 
 app.post("/login",async(req,res)=>{
 
@@ -67,10 +85,14 @@ role:user.role
 
 });
 
+/* ---------- Admin Users ---------- */
+
 app.get("/users",async(req,res)=>{
 const users = await User.find();
 res.json(users);
 });
+
+/* ---------- Timetable API ---------- */
 
 app.post("/generate",(req,res)=>{
 
@@ -82,6 +104,18 @@ res.json({ matrix });
 
 });
 
-app.listen(5000,()=>{
-console.log("Server running on port 5000");
+/* ---------- Serve React Build ---------- */
+
+app.use(express.static(path.join(__dirname,"client/dist")));
+
+app.get("*",(req,res)=>{
+res.sendFile(path.join(__dirname,"client/dist/index.html"));
+});
+
+/* ---------- Start Server ---------- */
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT,()=>{
+console.log(`Server running on port ${PORT}`);
 });
