@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 
 function Signup(){
 
-const [username,setUsername]=useState("");
-const [email,setEmail]=useState("");
-const [password,setPassword]=useState("");
+const [username,setUsername] = useState("");
+const [email,setEmail] = useState("");
+const [password,setPassword] = useState("");
 
 const navigate = useNavigate();
 
@@ -17,21 +17,35 @@ alert("All fields are required");
 return;
 }
 
+/* strong password validation */
+const strongPassword =
+/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+if(!strongPassword.test(password)){
+alert(
+"Password must contain:\n\n• Minimum 8 characters\n• 1 uppercase letter\n• 1 lowercase letter\n• 1 number\n• 1 special character"
+);
+return;
+}
+
 try{
 
-await axios.post("http://localhost:5000/signup",{
-username,
-email,
-password
-});
+const res = await axios.post(
+"http://localhost:5000/signup",
+{
+username: username.trim(),
+email: email.trim(),
+password: password
+}
+);
 
-alert("Signup Successful. Please Login.");
+alert(res.data.message || "Signup successful");
 
 navigate("/");
 
 }catch(err){
 console.log(err);
-alert("Signup failed");
+alert("Signup failed. Email may already exist.");
 }
 
 };
@@ -40,7 +54,7 @@ return(
 
 <div style={{textAlign:"center",marginTop:"120px"}}>
 
-<h2>Signup</h2>
+<h2>User Signup</h2>
 
 <input
 type="text"

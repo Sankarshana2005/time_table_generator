@@ -41,6 +41,7 @@ alert("Login failed");
 return(
 
 <div style={{textAlign:"center",marginTop:"120px"}}>
+    <h1>Welcome to Time Table Generator</h1>
 
 <h2>Login</h2>
 
