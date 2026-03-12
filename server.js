@@ -21,22 +21,22 @@ mongoose.connect(process.env.MONGO_URI)
 /* ---------- User Model ---------- */
 
 const UserSchema = new mongoose.Schema({
-  username:String,
-  email:String,
-  password:String,
-  role:{
-    type:String,
-    default:"user"
-  }
+username:String,
+email:String,
+password:String,
+role:{
+type:String,
+default:"user"
+}
 });
 
 const User = mongoose.model("User",UserSchema);
 
 /* ---------- Signup ---------- */
 
-app.post("/signup",async(req,res)=>{
+app.post("/signup", async (req,res)=>{
 
-const {username,email,password}=req.body;
+const {username,email,password} = req.body;
 
 try{
 
@@ -60,9 +60,9 @@ res.status(500).json({message:"Signup failed"});
 
 /* ---------- Login ---------- */
 
-app.post("/login",async(req,res)=>{
+app.post("/login", async (req,res)=>{
 
-const {email,password}=req.body;
+const {email,password} = req.body;
 
 const user = await User.findOne({email});
 
@@ -87,9 +87,34 @@ role:user.role
 
 /* ---------- Admin Users ---------- */
 
-app.get("/users",async(req,res)=>{
+app.get("/users", async (req,res)=>{
 const users = await User.find();
 res.json(users);
+});
+
+/* ---------- Update User ---------- */
+
+app.put("/users/:id", async (req,res)=>{
+
+const {username,email} = req.body;
+
+await User.findByIdAndUpdate(
+req.params.id,
+{username,email}
+);
+
+res.json({message:"User updated"});
+
+});
+
+/* ---------- Delete User ---------- */
+
+app.delete("/users/:id", async (req,res)=>{
+
+await User.findByIdAndDelete(req.params.id);
+
+res.json({message:"User deleted"});
+
 });
 
 /* ---------- Timetable API ---------- */
@@ -108,7 +133,7 @@ res.json({ matrix });
 
 app.use(express.static(path.join(__dirname,"client/dist")));
 
-app.get("*",(req,res)=>{
+app.get("/*",(req,res)=>{
 res.sendFile(path.join(__dirname,"client/dist/index.html"));
 });
 
